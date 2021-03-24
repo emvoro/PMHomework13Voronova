@@ -7,22 +7,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using DepsWebApp.Authentication;
 using DepsWebApp.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DepsWebApp.Services
 {
 #pragma warning disable CS1591
     public class AuthService : IAuthService
     {
-        private readonly ConcurrentDictionary<string, Account> _accounts = new ConcurrentDictionary<string, Account>();
-
         private readonly DatabaseContext _context;
-
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
         public AuthService(DatabaseContext context)
         {
             _context = context;
         }
+
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
         public async Task<string> RegisterAsync(string login, string password)
         {
@@ -32,9 +31,9 @@ namespace DepsWebApp.Services
             var release = await _semaphore.WaitAsync(1000);
             try
             {
-                var id = _accounts.Count + 1;
+                var id = await _context.Accounts.CountAsync() + 1;
                 var encrypted = Base64Encryption.Encode($"{login}:{password}");
-                if (_context.Accounts.FirstOrDefault(account => account.Login == login) == null) throw new ArgumentException(" Account with this login already exists.");
+                if (await _context.Accounts.AnyAsync(account => account.Login == login)) throw new ArgumentException(" Account with this login already exists.");
                 await _context.Accounts.AddAsync(new Account(encrypted, login, password));
                 return encrypted;
             }
@@ -54,7 +53,7 @@ namespace DepsWebApp.Services
 
             var decryptedAccount = Base64Encryption.Decode(encryptedAccount).Split(':');
 
-            return Task.FromResult(_context.Accounts.Any(account => account.Login == decryptedAccount[0] && account.Password == decryptedAccount[1]));
+            return _context.Accounts.AnyAsync(account => account.Login == decryptedAccount[0] && account.Password == decryptedAccount[1]);
         }
     }
 #pragma warning restore CS1591
