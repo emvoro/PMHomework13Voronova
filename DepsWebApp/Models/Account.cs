@@ -11,7 +11,7 @@ namespace DepsWebApp.Models
         /// Account identifier.
         /// </summary>
         [JsonPropertyName("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
 
         /// <summary>
         /// Account login.
@@ -31,7 +31,7 @@ namespace DepsWebApp.Models
         /// <param name="id">Set <see cref="Id"/>Account Base64 identifier.</param>
         /// <param name="login">Set <see cref="Login"/>Account login.</param>
         /// <param name="password">Set <see cref="Password"/>Account password.</param>
-        public Account(string id, string login, string password)
+        public Account(int id, string login, string password)
         {
             Id = id;
             Login = login;

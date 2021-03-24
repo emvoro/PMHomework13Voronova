@@ -34,7 +34,7 @@ namespace DepsWebApp.Services
                 var id = await _context.Accounts.CountAsync() + 1;
                 var encrypted = Base64Encryption.Encode($"{login}:{password}");
                 if (await _context.Accounts.AnyAsync(account => account.Login == login)) throw new ArgumentException(" Account with this login already exists.");
-                await _context.Accounts.AddAsync(new Account(encrypted, login, password));
+                await _context.Accounts.AddAsync(new Account(id, login, password));
                 return encrypted;
             }
             finally
